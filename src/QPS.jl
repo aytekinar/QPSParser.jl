@@ -1,6 +1,12 @@
 module QPS
 
-export  QPInstance
+export  QPInstance,
+        objective,
+        inequalities,
+        equalities,
+        bounds,
+        variables,
+        name
 
 include("QPInstance.jl")
 
