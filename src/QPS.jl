@@ -6,8 +6,10 @@ export  QPInstance,
         equalities,
         bounds,
         variables,
-        name
+        name,
+        parseqps
 
 include("QPInstance.jl")
+include("parseqps.jl")
 
 end # module
