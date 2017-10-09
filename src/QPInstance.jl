@@ -74,3 +74,11 @@ QPInstance(Q::AbstractMatrix, q₁::AbstractVector, q₂::Real, c₁::AbstractVe
   x₁::AbstractVector, x₂::AbstractVector, vars::AbstractVector{S},
   name::AbstractString) where S<:Union{Symbol,Char,AbstractString} =
   QPInstance(Float64, Q, q₁, q₂, c₁, C, c₂, A, b, x₁, x₂, vars, name)
+
+
+objective(qp::QPInstance)     = (qp.Q, qp.q₁, qp.q₂)
+inequalities(qp::QPInstance)  = (qp.C, qp.c₁, qp.c₂)
+equalities(qp::QPInstance)    = (qp.A, qp.b)
+bounds(qp::QPInstance)        = (qp.x₁, qp.x₂)
+variables(qp::QPInstance)     = qp.vars
+name(qp::QPInstance)          = qp.name
