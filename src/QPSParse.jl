@@ -1,4 +1,4 @@
-module QPS
+module QPSParse
 
 export  QPInstance,
         objective,
@@ -7,9 +7,9 @@ export  QPInstance,
         bounds,
         variables,
         name,
-        parseqps
+        qpsparse
 
 include("QPInstance.jl")
-include("parseqps.jl")
+include("parse.jl")
 
 end # module

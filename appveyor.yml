@@ -46,10 +46,7 @@ install:
 build_script:
   - IF EXIST .git\shallow (git fetch --unshallow)
   - C:\projects\julia\bin\julia -e "versioninfo();
-      Pkg.clone(pwd(), \"QPS\"); Pkg.build(\"QPS\")"
+      Pkg.clone(pwd(), \"QPSParse\"); Pkg.build(\"QPSParse\")"
 
 test_script:
-  - C:\projects\julia\bin\julia -e "Pkg.test(\"QPS\")"
-  - C:\projects\julia\bin\julia -e "Pkg.dir(\"QPS\") |> println" > folder.txt
-  - set /p TEST_FOLDER=<folder.txt
-  - move %TEST_FOLDER%\test\test-plot.png test-plot-win-%PLATFORM%-%JULIA%.png
+  - C:\projects\julia\bin\julia -e "Pkg.test(\"QPSParse\")"

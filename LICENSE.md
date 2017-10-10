@@ -1,4 +1,4 @@
-The QPS.jl package is licensed under the MIT "Expat" License:
+The QPSParse.jl package is licensed under the MIT "Expat" License:
 
 > Copyright (c) 2017: Arda Aytekin (aytekin@kth.se).
 >
