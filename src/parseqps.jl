@@ -1,3 +1,24 @@
+"""
+    parseqps([t::Type{T}, ]filename::AbstractString) -> mps
+
+Parse QPS formatted file `filename`. `T` must be an `AbstractFloat` type. When
+only `filename` is provided, the first argument defaults to `Float64`.
+
+`mps` is of `MPSDescription` type. It contains the description of the the
+following optimization problem formuliation:
+
+```
+minimize    0.5*x'*Q*x + q₁'*x + q₂
+subject to       A*x = b
+            c₁ ≤ C*x ≤ c₂
+            lb ≤  x  ≤ ub
+```
+
+where all the matrices and vectors are of type `T`.
+
+See also: `name`, `variables`, `objective`, `equalities`, `inequalities`,
+  `bounds` and `canonical`.
+"""
 function parseqps{T<:AbstractFloat}(::Type{T}, filename::AbstractString)
   # Initialize auxiliary variables
   qpname                        = "QP"

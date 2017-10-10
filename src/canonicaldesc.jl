@@ -30,15 +30,36 @@ immutable CanonicalDescription{T<:AbstractFloat}
   end
 end
 
+"""
+    canonical(mps::MPSDescription) -> canon
+
+Transform the `mps` object as returned from `parseqps` into `canon`, an object
+of type `CanonicalDescription`.
+
+`canon` contains the description of the following optimization problem formulation:
+
+```
+minimize    0.5*x'*Q*x + q₁'*x + q₂
+subject to       A*x = b
+                 C̃*x ≤ c̃
+            lb ≤  x  ≤ ub
+```
+
+where all the matrices and vectors are of type `T`, where `T` is the first
+argument in `parseqps`.
+
+See also: `name`, `variables`, `objective`, `equalities`, `inequalities`,
+  `bounds` and `parseqps`.
+"""
 canonical{T<:AbstractFloat}(qp::MPSDescription{T})            =
   CanonicalDescription(qp)
 
-objective(qp::CanonicalDescription)     = (qp.Q, qp.q₁, qp.q₂ )
-inequalities(qp::CanonicalDescription)  = (qp.C̃, qp.c̃         )
-equalities(qp::CanonicalDescription)    = (qp.A, qp.b         )
-bounds(qp::CanonicalDescription)        = (qp.lb, qp.ub       )
-variables(qp::CanonicalDescription)     = qp.vars
 name(qp::CanonicalDescription)          = qp.name
+variables(qp::CanonicalDescription)     = qp.vars
+objective(qp::CanonicalDescription)     = (qp.Q, qp.q₁, qp.q₂ )
+equalities(qp::CanonicalDescription)    = (qp.A, qp.b         )
+inequalities(qp::CanonicalDescription)  = (qp.C̃, qp.c̃         )
+bounds(qp::CanonicalDescription)        = (qp.lb, qp.ub       )
 
 function _compact(stream, ::MIME"text/plain", qp::CanonicalDescription)
   print(stream, "QP")
