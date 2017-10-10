@@ -83,8 +83,8 @@ function qpsparse(::Type{T}, filename::AbstractString) where T<:AbstractFloat
     c₂        = fill(convert(T, Inf), m₁)
     A         = zeros(T, m₂, n)
     b         = zeros(T, m₂)
-    x₁        = zeros(T, n)
-    x₂        = fill(convert(T, Inf), n)
+    lb        = zeros(T, n)
+    ub        = fill(convert(T, Inf), n)
 
     varvec    = Vector{Symbol}(n)
     for (varname, varidx) in vars
@@ -126,13 +126,13 @@ function qpsparse(::Type{T}, filename::AbstractString) where T<:AbstractFloat
       colidx = vars[key]
       for (bndtype, bndval) in val
         if bndtype == :lower
-          x₁[colidx] = bndval
+          lb[colidx] = bndval
         elseif bndtype == :upper
-          x₂[colidx] = bndval
+          ub[colidx] = bndval
         elseif bndtype == :fixed
-          x₁[colidx] = x₂[colidx] = bndval
+          lb[colidx] = ub[colidx] = bndval
         else
-          x₁[colidx] = convert(T, -Inf)
+          lb[colidx] = convert(T, -Inf)
         end
       end
     end
@@ -147,7 +147,7 @@ function qpsparse(::Type{T}, filename::AbstractString) where T<:AbstractFloat
     end
 
     # Return the problem
-    return MPSDescription(T, Q, q₁, q₂, c₁, C, c₂, A, b, x₁, x₂, varvec, qpname)
+    return MPSDescription(T, Q, q₁, q₂, c₁, C, c₂, A, b, lb, ub, varvec, qpname)
   end
 end
 
