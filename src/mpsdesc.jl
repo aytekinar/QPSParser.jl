@@ -7,8 +7,8 @@ struct MPSDescription{T<:AbstractFloat}
   c₂::Vector{T}
   A::Matrix{T}
   b::Vector{T}
-  x₁::Vector{T}
-  x₂::Vector{T}
+  lb::Vector{T}
+  ub::Vector{T}
   vars::Vector{Symbol}
   name::String
 end
@@ -30,7 +30,7 @@ MPSDescription(name::AbstractString = "QP")                                     
 
 function MPSDescription(::Type{T}, Q::AbstractMatrix, q₁::AbstractVector, q₂::Real,
   c₁::AbstractVector, C::AbstractMatrix, c₂::AbstractVector, A::AbstractMatrix,
-  b::AbstractVector, x₁::AbstractVector, x₂::AbstractVector,
+  b::AbstractVector, lb::AbstractVector, ub::AbstractVector,
   vars::AbstractVector{S}, name::AbstractString) where T<:AbstractFloat where
   S<:Union{Symbol,Char,AbstractString}
 
@@ -57,28 +57,28 @@ function MPSDescription(::Type{T}, Q::AbstractMatrix, q₁::AbstractVector, q₂
   elseif m₂ ≠ length(b)
     warn("MPSDescription: `b` must have $(m₂) elements")
     throw(DomainError())
-  elseif n₁ ≠ length(x₁) || n₁ ≠ length(x₂)
-    warn("MPSDescription: Both `x₁` and `x₂` must have $(n₁) elements")
+  elseif n₁ ≠ length(lb) || n₁ ≠ length(ub)
+    warn("MPSDescription: Both `lb` and `ub` must have $(n₁) elements")
     throw(DomainError())
   elseif n₁ ≠ length(vars)
     warn("MPSDescription: `vars` must have $(n₁) elements")
     throw(DomainError())
   end
 
-  MPSDescription{T}(Q, q₁, q₂, c₁, C, c₂, A, b, x₁, x₂, vars, name)
+  MPSDescription{T}(Q, q₁, q₂, c₁, C, c₂, A, b, lb, ub, vars, name)
 
 end
 
 MPSDescription(Q::AbstractMatrix, q₁::AbstractVector, q₂::Real, c₁::AbstractVector,
   C::AbstractMatrix, c₂::AbstractVector, A::AbstractMatrix, b::AbstractVector,
-  x₁::AbstractVector, x₂::AbstractVector, vars::AbstractVector{S},
+  lb::AbstractVector, ub::AbstractVector, vars::AbstractVector{S},
   name::AbstractString) where S<:Union{Symbol,Char,AbstractString} =
-  MPSDescription(Float64, Q, q₁, q₂, c₁, C, c₂, A, b, x₁, x₂, vars, name)
+  MPSDescription(Float64, Q, q₁, q₂, c₁, C, c₂, A, b, lb, ub, vars, name)
 
 
 objective(qp::MPSDescription)     = (qp.Q, qp.q₁, qp.q₂)
 inequalities(qp::MPSDescription)  = (qp.C, qp.c₁, qp.c₂)
 equalities(qp::MPSDescription)    = (qp.A, qp.b)
-bounds(qp::MPSDescription)        = (qp.x₁, qp.x₂)
+bounds(qp::MPSDescription)        = (qp.lb, qp.ub)
 variables(qp::MPSDescription)     = qp.vars
 name(qp::MPSDescription)          = qp.name
