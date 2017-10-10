@@ -1,4 +1,4 @@
-function qpsparse(::Type{T}, filename::AbstractString) where T<:AbstractFloat
+function parseqps(::Type{T}, filename::AbstractString) where T<:AbstractFloat
   # Initialize auxiliary variables
   qpname                        = "QP"
   mode                          = :NAME
@@ -151,4 +151,4 @@ function qpsparse(::Type{T}, filename::AbstractString) where T<:AbstractFloat
   end
 end
 
-qpsparse(filename::AbstractString) = qpsparse(Float64, filename)
+parseqps(filename::AbstractString) = parseqps(Float64, filename)

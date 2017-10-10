@@ -1,18 +1,16 @@
-module QPSParse
+module QPSParser
 
-export  MPSDescription,
-        CanonicalDescription,
-        canonical,
+export  canonical,
         objective,
         inequalities,
         equalities,
         bounds,
         variables,
         name,
-        qpsparse
+        parseqps
 
 include("mpsdesc.jl")
 include("canonicaldesc.jl")
-include("parse.jl")
+include("parseqps.jl")
 
 end # module

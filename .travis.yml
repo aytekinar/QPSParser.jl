@@ -5,7 +5,6 @@ os:
   - osx
 
 julia:
-  - 0.4
   - 0.5
   - 0.6
   - nightly
@@ -19,10 +18,10 @@ notifications:
   email: false
 
 script:
-  - julia -e 'Pkg.clone(pwd()); Pkg.build("QPSParse")'
-  - julia --check-bounds=yes --inline=no -e 'Pkg.test("QPSParse",
+  - julia -e 'Pkg.clone(pwd()); Pkg.build("QPSParser")'
+  - julia --check-bounds=yes --inline=no -e 'Pkg.test("QPSParser",
     coverage=true)'
 
 after_success:
-  - julia -e 'cd(Pkg.dir("QPSParse")); Pkg.add("Coverage"); using Coverage;
+  - julia -e 'cd(Pkg.dir("QPSParser")); Pkg.add("Coverage"); using Coverage;
     Coveralls.submit(process_folder()); Codecov.submit(process_folder())'

@@ -1,9 +1,6 @@
 environment:
   matrix:
     - platform: x86
-      julia: 0.4
-      link: "julialang/bin/winnt/x86/0.4/julia-0.4-latest-win32.exe"
-    - platform: x86
       julia: 0.5
       link: "julialang/bin/winnt/x86/0.5/julia-0.5-latest-win32.exe"
     - platform: x86
@@ -12,9 +9,6 @@ environment:
     - platform: x86
       julia: nightly
       link: "julianightlies/bin/winnt/x86/julia-latest-win32.exe"
-    - platform: x64
-      julia: 0.4
-      link: "julialang/bin/winnt/x64/0.4/julia-0.4-latest-win64.exe"
     - platform: x64
       julia: 0.5
       link: "julialang/bin/winnt/x64/0.5/julia-0.5-latest-win64.exe"
@@ -46,7 +40,7 @@ install:
 build_script:
   - IF EXIST .git\shallow (git fetch --unshallow)
   - C:\projects\julia\bin\julia -e "versioninfo();
-      Pkg.clone(pwd(), \"QPSParse\"); Pkg.build(\"QPSParse\")"
+      Pkg.clone(pwd(), \"QPSParser\"); Pkg.build(\"QPSParser\")"
 
 test_script:
-  - C:\projects\julia\bin\julia -e "Pkg.test(\"QPSParse\")"
+  - C:\projects\julia\bin\julia -e "Pkg.test(\"QPSParser\")"
