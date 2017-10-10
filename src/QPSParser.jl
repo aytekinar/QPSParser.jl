@@ -1,5 +1,7 @@
 module QPSParser
 
+import Base: show
+
 export  canonical,
         objective,
         inequalities,
