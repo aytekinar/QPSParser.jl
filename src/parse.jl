@@ -147,7 +147,7 @@ function qpsparse(::Type{T}, filename::AbstractString) where T<:AbstractFloat
     end
 
     # Return the problem
-    return QPInstance(T, Q, q₁, q₂, c₁, C, c₂, A, b, x₁, x₂, varvec, qpname)
+    return MPSDescription(T, Q, q₁, q₂, c₁, C, c₂, A, b, x₁, x₂, varvec, qpname)
   end
 end
 

@@ -1,6 +1,6 @@
 module QPSParse
 
-export  QPInstance,
+export  MPSDescription,
         objective,
         inequalities,
         equalities,
@@ -9,7 +9,7 @@ export  QPInstance,
         name,
         qpsparse
 
-include("QPInstance.jl")
+include("mpsdesc.jl")
 include("parse.jl")
 
 end # module
