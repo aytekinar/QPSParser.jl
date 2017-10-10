@@ -1,4 +1,4 @@
-struct MPSDescription{T<:AbstractFloat}
+immutable MPSDescription{T<:AbstractFloat}
   Q::Matrix{T}
   q₁::Vector{T}
   q₂::T
@@ -13,26 +13,26 @@ struct MPSDescription{T<:AbstractFloat}
   name::String
 end
 
-function MPSDescription(::Type{T}, n::Int, m₁::Int, m₂::Int,
-  name::AbstractString = "QP") where T<:AbstractFloat
+function (::Type{MPSDescription}){T<:AbstractFloat}(::Type{T}, n::Int, m₁::Int,
+  m₂::Int, name::AbstractString = "QP")
   MPSDescription{T}(zeros(T, n, n), zeros(T, n), zero(T), fill(convert(T, -Inf), m₁),
     zeros(T, m₁, n), fill(convert(T, Inf), m₁), zeros(T, m₂, n), zeros(T, m₂),
     zeros(T, n), fill(convert(T, Inf), n), Symbol[Symbol(:x_,k) for k in 1:n],
     name)
 end
 
-MPSDescription(n::Int, m₁::Int, m₂::Int, name::AbstractString = "QP")           =
+MPSDescription(n::Int, m₁::Int, m₂::Int, name::AbstractString = "QP")     =
   MPSDescription(Float64, n, m₁, m₂, name)
-MPSDescription(t::Type{T}, name::AbstractString = "QP") where T<:AbstractFloat  =
+MPSDescription{T<:AbstractFloat}(t::Type{T}, name::AbstractString = "QP") =
   MPSDescription(t, 0, 0, 0, name)
-MPSDescription(name::AbstractString = "QP")                                     =
+MPSDescription(name::AbstractString = "QP")                               =
   MPSDescription(Float64, name)
 
-function MPSDescription(::Type{T}, Q::AbstractMatrix, q₁::AbstractVector, q₂::Real,
-  c₁::AbstractVector, C::AbstractMatrix, c₂::AbstractVector, A::AbstractMatrix,
-  b::AbstractVector, lb::AbstractVector, ub::AbstractVector,
-  vars::AbstractVector{S}, name::AbstractString) where T<:AbstractFloat where
-  S<:Union{Symbol,Char,AbstractString}
+function MPSDescription{T<:AbstractFloat,S<:Union{Symbol,Char,AbstractString}}(
+  ::Type{T}, Q::AbstractMatrix, q₁::AbstractVector, q₂::Real, c₁::AbstractVector,
+  C::AbstractMatrix, c₂::AbstractVector, A::AbstractMatrix, b::AbstractVector,
+  lb::AbstractVector, ub::AbstractVector, vars::AbstractVector{S},
+  name::AbstractString)
 
   n₁, n₂  = size(Q)
   m₁, n₃  = size(C)
@@ -69,10 +69,10 @@ function MPSDescription(::Type{T}, Q::AbstractMatrix, q₁::AbstractVector, q₂
 
 end
 
-MPSDescription(Q::AbstractMatrix, q₁::AbstractVector, q₂::Real, c₁::AbstractVector,
-  C::AbstractMatrix, c₂::AbstractVector, A::AbstractMatrix, b::AbstractVector,
-  lb::AbstractVector, ub::AbstractVector, vars::AbstractVector{S},
-  name::AbstractString) where S<:Union{Symbol,Char,AbstractString} =
+MPSDescription{S<:Union{Symbol,Char,AbstractString}}(Q::AbstractMatrix,
+  q₁::AbstractVector, q₂::Real, c₁::AbstractVector, C::AbstractMatrix,
+  c₂::AbstractVector, A::AbstractMatrix, b::AbstractVector, lb::AbstractVector,
+  ub::AbstractVector, vars::AbstractVector{S}, name::AbstractString) =
   MPSDescription(Float64, Q, q₁, q₂, c₁, C, c₂, A, b, lb, ub, vars, name)
 
 
@@ -82,3 +82,22 @@ equalities(qp::MPSDescription)    = (qp.A, qp.b)
 bounds(qp::MPSDescription)        = (qp.lb, qp.ub)
 variables(qp::MPSDescription)     = qp.vars
 name(qp::MPSDescription)          = qp.name
+
+function _compact(stream, ::MIME"text/plain", qp::MPSDescription)
+  print(stream, "QP")
+end
+
+function _full(stream, ::MIME"text/plain", qp::MPSDescription)
+  println(stream, "QP instance: ", name(qp), ".")
+  println(stream, "---")
+  println(stream, "  minimize    0.5*x'*Q*x + q₁'*x + q₂")
+  println(stream, "  subject to       A*x = b")
+  println(stream, "              c₁ ≤ C*x ≤ c₂")
+  println(stream, "              lb ≤  x  ≤ ub")
+  print(stream, "---")
+end
+
+show(stream::IO, qp::MPSDescription)                          =
+  show(stream, MIME("text/plain"), qp)
+show(stream::IO, mime::MIME"text/plain", qp::MPSDescription)  =
+  get(stream, :compact, false) ? _compact(stream, mime, qp) : _full(stream, mime, qp)

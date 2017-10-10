@@ -1,4 +1,4 @@
-function parseqps(::Type{T}, filename::AbstractString) where T<:AbstractFloat
+function parseqps{T<:AbstractFloat}(::Type{T}, filename::AbstractString)
   # Initialize auxiliary variables
   qpname                        = "QP"
   mode                          = :NAME

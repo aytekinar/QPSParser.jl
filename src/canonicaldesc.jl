@@ -1,4 +1,4 @@
-struct CanonicalDescription{T<:AbstractFloat}
+immutable CanonicalDescription{T<:AbstractFloat}
   Q::Matrix{T}
   q₁::Vector{T}
   q₂::T
@@ -11,7 +11,7 @@ struct CanonicalDescription{T<:AbstractFloat}
   vars::Vector{Symbol}
   name::String
 
-  function CanonicalDescription{T}(qp::MPSDescription{T}) where T<:AbstractFloat
+  function (::Type{CanonicalDescription}){T<:AbstractFloat}(qp::MPSDescription{T})
     c1ind   = isfinite.(qp.c₁)
     c2ind   = isfinite.(qp.c₂)
     m₁, m₂  = sum(c1ind), sum(c2ind)
@@ -30,10 +30,8 @@ struct CanonicalDescription{T<:AbstractFloat}
   end
 end
 
-CanonicalDescription(qp::MPSDescription{T}) where T<:AbstractFloat =
-  CanonicalDescription{T}(qp)
-canonical(qp::MPSDescription{T})            where T<:AbstractFloat =
-  CanonicalDescription{T}(qp)
+canonical{T<:AbstractFloat}(qp::MPSDescription{T})            =
+  CanonicalDescription(qp)
 
 objective(qp::CanonicalDescription)     = (qp.Q, qp.q₁, qp.q₂ )
 inequalities(qp::CanonicalDescription)  = (qp.C̃, qp.c̃         )
@@ -41,3 +39,22 @@ equalities(qp::CanonicalDescription)    = (qp.A, qp.b         )
 bounds(qp::CanonicalDescription)        = (qp.lb, qp.ub       )
 variables(qp::CanonicalDescription)     = qp.vars
 name(qp::CanonicalDescription)          = qp.name
+
+function _compact(stream, ::MIME"text/plain", qp::CanonicalDescription)
+  print(stream, "QP")
+end
+
+function _full(stream, ::MIME"text/plain", qp::CanonicalDescription)
+  println(stream, "QP instance: ", name(qp), ".")
+  println(stream, "---")
+  println(stream, "  minimize    0.5*x'*Q*x + q₁'*x + q₂")
+  println(stream, "  subject to       A*x = b")
+  println(stream, "                   C̃*x ≤ c̃")
+  println(stream, "              lb ≤  x  ≤ ub")
+  print(stream, "---")
+end
+
+show(stream::IO, qp::CanonicalDescription)                          =
+  show(stream, MIME("text/plain"), qp)
+show(stream::IO, mime::MIME"text/plain", qp::CanonicalDescription)  =
+  get(stream, :compact, false) ? _compact(stream, mime, qp) : _full(stream, mime, qp)
