@@ -19,10 +19,10 @@ notifications:
   email: false
 
 script:
-  - julia -e 'Pkg.clone(pwd()); Pkg.build("QPS")'
-  - julia --check-bounds=yes --inline=no -e 'Pkg.test("QPS",
+  - julia -e 'Pkg.clone(pwd()); Pkg.build("QPSParse")'
+  - julia --check-bounds=yes --inline=no -e 'Pkg.test("QPSParse",
     coverage=true)'
 
 after_success:
-  - julia -e 'cd(Pkg.dir("QPS")); Pkg.add("Coverage"); using Coverage;
+  - julia -e 'cd(Pkg.dir("QPSParse")); Pkg.add("Coverage"); using Coverage;
     Coveralls.submit(process_folder()); Codecov.submit(process_folder())'

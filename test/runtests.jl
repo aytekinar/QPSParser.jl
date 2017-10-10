@@ -1,4 +1,4 @@
-using QPS
+using QPSParse
 using Base.Test
 
 # write your own tests here
