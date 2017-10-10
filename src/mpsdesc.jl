@@ -75,13 +75,80 @@ MPSDescription{S<:Union{Symbol,Char,AbstractString}}(Q::AbstractMatrix,
   ub::AbstractVector, vars::AbstractVector{S}, name::AbstractString) =
   MPSDescription(Float64, Q, q₁, q₂, c₁, C, c₂, A, b, lb, ub, vars, name)
 
+"""
+    name(qp) -> qpname
 
-objective(qp::MPSDescription)     = (qp.Q, qp.q₁, qp.q₂)
-inequalities(qp::MPSDescription)  = (qp.C, qp.c₁, qp.c₂)
-equalities(qp::MPSDescription)    = (qp.A, qp.b)
-bounds(qp::MPSDescription)        = (qp.lb, qp.ub)
-variables(qp::MPSDescription)     = qp.vars
+Return the problem instance `qp`'s name. `qp` can be either `MPSDescription` or
+`CanonicalDescription`. `qpname` is a `String`.
+
+See also: `variables`, `objective`, `equalities`, `inequalities`, `bounds`,
+  `parseqps` and `canonical`.
+"""
 name(qp::MPSDescription)          = qp.name
+
+"""
+    variables(qp) -> vars
+
+Return the problem instance `qp`'s variable names. `qp` can be either
+`MPSDescription` or `CanonicalDescription`. `vars` is a `Vector{Symbol}`.
+
+See also: `name`, `objective`, `equalities`, `inequalities`, `bounds`, `parseqps`
+  and `canonical`.
+"""
+variables(qp::MPSDescription)     = qp.vars
+
+"""
+    objective(qp) -> (Q, q₁, q₂)
+
+Return the problem instance `qp`'s objective part. `qp` can be either
+`MPSDescription` or `CanonicalDescription`. `Q` is a `Matrix{T}`, `q₁` is a
+`Vector{T}` and `q₂` is a `T`, where `T` is the first argument in `parseqps`.
+
+See also: `name`, `variables`, `equalities`, `inequalities`, `bounds`, `parseqps`
+  and `canonical`.
+"""
+objective(qp::MPSDescription)     = (qp.Q, qp.q₁, qp.q₂ )
+
+"""
+    equalities(qp) -> (A, b)
+
+Return the problem instance `qp`'s `A, b` pair that defines the equalities among
+the problem's variables. `qp` can be either `MPSDescription` or `CanonicalDescription`.
+`A` is a `Matrix{T}` and `b` is a `Vector{T}`, where `T` is the first argument
+in `parseqps`.
+
+See also: `name`, `variables`, `objective`, `inequalities`, `bounds`, `parseqps`
+  and `canonical`.
+"""
+equalities(qp::MPSDescription)    = (qp.A, qp.b         )
+
+"""
+    inequalities(qp::MPSDescription)        -> (C, c₁, c₂)
+    inequalities(qp::CanonicalDescription)  -> (C̃, c̃)
+
+Return the problem instance `qp`'s part that defines the inequalities among
+the problem's variables.
+
+When `qp` is `MPSDescription`, `C` is a `Matrix{T}`, and `c₁` and `c₂` are
+`Vector{T}`, where `T` is the first argument in `parseqps`. When `qp` is
+`CanonicalDescription`, `C̃` is a `Matrix{T}` and `c̃` is a `Vector{T}`.
+
+See also: `name`, `variables`, `objective`, `equalities`, `bounds`, `parseqps`
+and `canonical`.
+"""
+inequalities(qp::MPSDescription)  = (qp.C, qp.c₁, qp.c₂ )
+
+"""
+    bounds(qp) -> (lb, ub)
+
+Return the lower and upper bounds, `lb` and `ub`, defined on the variables of the
+problem instance `qp`. `qp` can be either `MPSDescription` or `CanonicalDescription`.
+Both `lb` and `ub` are `Vector{T}`, where `T` is the first argument in `parseqps`.
+
+See also: `name`, `variables`, `objective`, `inequalities`, `inequalities`,
+  `parseqps` and `canonical`.
+"""
+bounds(qp::MPSDescription)        = (qp.lb, qp.ub       )
 
 function _compact(stream, ::MIME"text/plain", qp::MPSDescription)
   print(stream, "QP")
