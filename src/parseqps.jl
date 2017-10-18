@@ -62,17 +62,17 @@ function parseqps{T<:AbstractFloat}(::Type{T}, filename::AbstractString)
         end
         for idx = 2:2:length(words)
           push!(get!(cols, var, Pair{Symbol,T}[]),
-            Pair(Symbol(words[idx]), parse(T, words[idx+1])))
+            Pair(Symbol(words[idx]), convert(T, parse(Float64, words[idx+1]))))
         end
       elseif mode == :RHS
         # NOTE: Discarding rhs name, *i.e.*, assuming only one rhs.
         for idx = 2:2:length(words)
-          rhs[Symbol(words[idx])] = parse(T, words[idx+1])
+          rhs[Symbol(words[idx])] = convert(T, parse(Float64, words[idx+1]))
         end
       elseif mode == :RANGES
         # NOTE: Discarding range name, *i.e.*, assuming only one range.
         for idx = 2:2:length(words)
-          ranges[Symbol(words[idx])] = parse(T, words[idx+1])
+          ranges[Symbol(words[idx])] = convert(T, parse(Float64, words[idx+1]))
         end
       elseif mode == :BOUNDS
         var = Symbol(words[3])
@@ -80,12 +80,12 @@ function parseqps{T<:AbstractFloat}(::Type{T}, filename::AbstractString)
               words[1] == "UP" ? :upper :
               words[1] == "FR" ? :free  : :fixed
         push!(get!(bounds, var, Pair{Symbol,T}[]),
-          Pair(bnd, parse(T, bnd == :free ? "0" : words[4])))
+          Pair(bnd, convert(T, parse(Float64, bnd == :free ? "0" : words[4]))))
       elseif mode == :QUADOBJ
         var = Symbol(words[1])
         for idx = 2:2:length(words)
           push!(get!(quadobj, var, Pair{Symbol,T}[]),
-            Pair(Symbol(words[idx]), parse(T, words[idx+1])))
+            Pair(Symbol(words[idx]), convert(T, parse(Float64, words[idx+1]))))
         end
       elseif mode == :ENDDATA
         break
