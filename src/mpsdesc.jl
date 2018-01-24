@@ -1,11 +1,11 @@
-immutable MPSDescription{T<:AbstractFloat}
-  Q::Matrix{T}
+immutable MPSDescription{T<:AbstractFloat,M<:AbstractMatrix}
+  Q::M
   q₁::Vector{T}
   q₂::T
   c₁::Vector{T}
-  C::Matrix{T}
+  C::M
   c₂::Vector{T}
-  A::Matrix{T}
+  A::M
   b::Vector{T}
   lb::Vector{T}
   ub::Vector{T}
@@ -13,26 +13,66 @@ immutable MPSDescription{T<:AbstractFloat}
   name::String
 end
 
-function (::Type{MPSDescription}){T<:AbstractFloat}(::Type{T}, n::Int, m₁::Int,
+function (::Type{MPSDescription}){T<:AbstractFloat}(::Type{T}, ::Type{Matrix}, n::Int, m₁::Int,
   m₂::Int, name::AbstractString = "QP")
-  MPSDescription{T}(zeros(T, n, n), zeros(T, n), zero(T), fill(convert(T, -Inf), m₁),
+  MPSDescription{T,Matrix{T}}(zeros(T, n, n), zeros(T, n), zero(T), fill(convert(T, -Inf), m₁),
     zeros(T, m₁, n), fill(convert(T, Inf), m₁), zeros(T, m₂, n), zeros(T, m₂),
     zeros(T, n), fill(convert(T, Inf), n), Symbol[Symbol(:x_,k) for k in 1:n],
     name)
 end
 
+function (::Type{MPSDescription}){T<:AbstractFloat}(::Type{T}, ::Type{SparseMatrixCSC}, n::Int, m₁::Int,
+  m₂::Int, name::AbstractString = "QP")
+  MPSDescription{T,SparseMatrixCSC{T,Int}}(spzeros(T, n, n), zeros(T, n), zero(T), fill(convert(T, -Inf), m₁),
+    spzeros(T, m₁, n), fill(convert(T, Inf), m₁), spzeros(T, m₂, n), zeros(T, m₂),
+    zeros(T, n), fill(convert(T, Inf), n), Symbol[Symbol(:x_,k) for k in 1:n],
+    name)
+end
+
 MPSDescription(n::Int, m₁::Int, m₂::Int, name::AbstractString = "QP")     =
-  MPSDescription(Float64, n, m₁, m₂, name)
+  MPSDescription(Float64, Matrix, n, m₁, m₂, name)
 MPSDescription{T<:AbstractFloat}(t::Type{T}, name::AbstractString = "QP") =
   MPSDescription(t, 0, 0, 0, name)
 MPSDescription(name::AbstractString = "QP")                               =
   MPSDescription(Float64, name)
+
+SparseMPSDescription(n::Int, m₁::Int, m₂::Int, name::AbstractString = "QP")     =
+  MPSDescription(Float64, SparseMatrixCSC, n, m₁, m₂, name)
+SparseMPSDescription{T<:AbstractFloat}(t::Type{T}, name::AbstractString = "QP") =
+  SparseMPSDescription(t, 0, 0, 0, name)
+SparseMPSDescription(name::AbstractString = "QP")                               =
+  SparseMPSDescription(Float64, name)
 
 function MPSDescription{T<:AbstractFloat,S<:Union{Symbol,Char,AbstractString}}(
   ::Type{T}, Q::AbstractMatrix, q₁::AbstractVector, q₂::Real, c₁::AbstractVector,
   C::AbstractMatrix, c₂::AbstractVector, A::AbstractMatrix, b::AbstractVector,
   lb::AbstractVector, ub::AbstractVector, vars::AbstractVector{S},
   name::AbstractString)
+
+  Q, C, A = promote(Q, C, A, Matrix{T})
+
+  _mpscheck(Q, q₁, q₂, c₁, C, c₂, A, b, lb, ub, vars)
+
+  MPSDescription{T,Matrix{T}}(Q, q₁, q₂, c₁, C, c₂, A, b, lb, ub, vars, name)
+end
+
+function MPSDescription{T<:AbstractFloat,S<:Union{Symbol,Char,AbstractString}}(
+  ::Type{T}, Q::AbstractSparseMatrix, q₁::AbstractVector, q₂::Real, c₁::AbstractVector,
+  C::AbstractSparseMatrix, c₂::AbstractVector, A::AbstractSparseMatrix, b::AbstractVector,
+  lb::AbstractVector, ub::AbstractVector, vars::AbstractVector{S},
+  name::AbstractString)
+
+  Q, C, A = promote(Q, C, A, SparseMatrixCSC{T,Int})
+
+  _mpscheck(Q, q₁, q₂, c₁, C, c₂, A, b, lb, ub, vars)
+
+  MPSDescription{T,SparseMatrixCSC{T,Int}}(Q, q₁, q₂, c₁, C, c₂, A, b, lb, ub, vars, name)
+end
+
+function _mpscheck{S<:Union{Symbol,Char,AbstractString}}(
+  Q::AbstractMatrix, q₁::AbstractVector, q₂::Real, c₁::AbstractVector,
+  C::AbstractMatrix, c₂::AbstractVector, A::AbstractMatrix, b::AbstractVector,
+  lb::AbstractVector, ub::AbstractVector, vars::AbstractVector{S})
 
   n₁, n₂  = size(Q)
   m₁, n₃  = size(C)
@@ -64,9 +104,6 @@ function MPSDescription{T<:AbstractFloat,S<:Union{Symbol,Char,AbstractString}}(
     warn("MPSDescription: `vars` must have $(n₁) elements")
     throw(DomainError())
   end
-
-  MPSDescription{T}(Q, q₁, q₂, c₁, C, c₂, A, b, lb, ub, vars, name)
-
 end
 
 MPSDescription{S<:Union{Symbol,Char,AbstractString}}(Q::AbstractMatrix,
@@ -155,7 +192,7 @@ function _compact(stream, ::MIME"text/plain", qp::MPSDescription)
 end
 
 function _full(stream, ::MIME"text/plain", qp::MPSDescription)
-  println(stream, "QP instance: ", name(qp), ".")
+  println(stream, _header(qp))
   println(stream, "---")
   println(stream, "  minimize    0.5*x'*Q*x + q₁'*x + q₂")
   println(stream, "  subject to       A*x = b")
@@ -163,6 +200,9 @@ function _full(stream, ::MIME"text/plain", qp::MPSDescription)
   println(stream, "              lb ≤  x  ≤ ub")
   print(stream, "---")
 end
+
+_header(qp::MPSDescription) = string("QP instance: ", name(qp), ".")
+_header{T<:AbstractFloat,M<:AbstractSparseMatrix}(qp::MPSDescription{T,M}) = string("Sparse QP instance: ", name(qp), ".")
 
 show(stream::IO, qp::MPSDescription)                          =
   show(stream, MIME("text/plain"), qp)

@@ -1,17 +1,17 @@
-immutable CanonicalDescription{T<:AbstractFloat}
-  Q::Matrix{T}
+immutable CanonicalDescription{T<:AbstractFloat,M<:AbstractMatrix}
+  Q::M
   q₁::Vector{T}
   q₂::T
-  A::Matrix{T}
+  A::M
   b::Vector{T}
-  C̃::Matrix{T}
+  C̃::M
   c̃::Vector{T}
   lb::Vector{T}
   ub::Vector{T}
   vars::Vector{Symbol}
   name::String
 
-  function (::Type{CanonicalDescription}){T<:AbstractFloat}(qp::MPSDescription{T})
+  function (::Type{CanonicalDescription}){T<:AbstractFloat,M<:AbstractMatrix}(qp::MPSDescription{T,M})
     c1ind   = isfinite.(qp.c₁)
     c2ind   = isfinite.(qp.c₂)
     m₁, m₂  = sum(c1ind), sum(c2ind)
@@ -26,7 +26,44 @@ immutable CanonicalDescription{T<:AbstractFloat}
     C̃[(m₁+1):end,:]  = qp.C[c2ind,:]
     c̃[(m₁+1):end]    = qp.c₂[c2ind]
 
-    new{T}(qp.Q, qp.q₁, qp.q₂, qp.A, qp.b, C̃, c̃, qp.lb, qp.ub, qp.vars, qp.name)
+    new{T,M}(qp.Q, qp.q₁, qp.q₂, qp.A, qp.b, C̃, c̃, qp.lb, qp.ub, qp.vars, qp.name)
+  end
+
+  function (::Type{CanonicalDescription}){T<:AbstractFloat,M<:AbstractSparseMatrix}(qp::MPSDescription{T,M})
+    c1ind   = isfinite.(qp.c₁)
+    c2ind   = isfinite.(qp.c₂)
+    m₁, m₂  = sum(c1ind), sum(c2ind)
+    m       = m₁ + m₂
+    n       = length(qp.vars)
+    C̃ᵢ      = Vector{Int}()
+    C̃ⱼ      = Vector{Int}()
+    C̃ᵥ      = Vector{T}()
+    c̃       = zeros(T, m)
+
+    rows = rowvals(qp.C)
+    vals = nonzeros(qp.C)
+    for col = 1:size(qp.C,2)
+      for j in nzrange(qp.C, col)
+        row = rows[j]
+        if c1ind[row]
+          idx = count(i->i,c1ind[1:row])
+          push!(C̃ᵢ,idx)
+          push!(C̃ⱼ,col)
+          push!(C̃ᵥ,-vals[j])
+          c̃[idx] = -qp.c₁[row]
+        end
+        if c2ind[row]
+          idx = count(i->i,c2ind[1:row])
+          push!(C̃ᵢ,m₁+idx)
+          push!(C̃ⱼ,col)
+          push!(C̃ᵥ,vals[j])
+          c̃[m₁+idx] = qp.c₂[row]
+        end
+      end
+    end
+    C̃ = sparse(C̃ᵢ, C̃ⱼ, C̃ᵥ, m, n)
+
+    new{T,M}(qp.Q, qp.q₁, qp.q₂, qp.A, qp.b, C̃, c̃, qp.lb, qp.ub, qp.vars, qp.name)
   end
 end
 
@@ -66,7 +103,7 @@ function _compact(stream, ::MIME"text/plain", qp::CanonicalDescription)
 end
 
 function _full(stream, ::MIME"text/plain", qp::CanonicalDescription)
-  println(stream, "QP instance: ", name(qp), ".")
+  println(stream, _header(qp))
   println(stream, "---")
   println(stream, "  minimize    0.5*x'*Q*x + q₁'*x + q₂")
   println(stream, "  subject to       A*x = b")
@@ -74,6 +111,9 @@ function _full(stream, ::MIME"text/plain", qp::CanonicalDescription)
   println(stream, "              lb ≤  x  ≤ ub")
   print(stream, "---")
 end
+
+_header(qp::CanonicalDescription) = string("QP instance: ", name(qp), ".")
+_header{T<:AbstractFloat,M<:AbstractSparseMatrix}(qp::CanonicalDescription{T,M}) = string("Sparse QP instance: ", name(qp), ".")
 
 show(stream::IO, qp::CanonicalDescription)                          =
   show(stream, MIME("text/plain"), qp)

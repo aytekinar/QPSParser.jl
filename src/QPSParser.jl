@@ -9,7 +9,8 @@ export  canonical,
         bounds,
         variables,
         name,
-        parseqps
+        parseqps,
+        parse_sparseqps
 
 include("mpsdesc.jl")
 include("canonicaldesc.jl")
