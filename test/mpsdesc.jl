@@ -1,11 +1,8 @@
-@testset "MPS Description" begin
-  Q       = eye(2)
+@testset "MPS Description" for (Q, C, A) in [(eye(2),eye(3,2),eye(4,2)),(speye(2),speye(3,2),speye(4,2))]
   q₁      = ones(2)
   q₂      = 0.
-  C       = eye(3,2)
   c₁      = zeros(3)
   c₂      = ones(3)
-  A       = eye(4,2)
   b       = ones(4)
   lb      = zeros(2)
   ub      = ones(2)
