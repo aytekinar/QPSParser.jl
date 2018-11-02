@@ -14,7 +14,7 @@ struct MPSDescription{T<:AbstractFloat,M<:AbstractMatrix}
 end
 
 function (::Type{MPSDescription})(::Type{T}, ::Type{Matrix}, n::Int, m₁::Int,
-  m₂::Int, name::AbstractString = "QP") where {T<:AbstractFloat}}
+  m₂::Int, name::AbstractString = "QP") where {T<:AbstractFloat}
   MPSDescription{T,Matrix{T}}(zeros(T, n, n), zeros(T, n), zero(T), fill(convert(T, -Inf), m₁),
     zeros(T, m₁, n), fill(convert(T, Inf), m₁), zeros(T, m₂, n), zeros(T, m₂),
     zeros(T, n), fill(convert(T, Inf), n), Symbol[Symbol(:x_,k) for k in 1:n],
@@ -31,15 +31,15 @@ end
 
 MPSDescription(n::Int, m₁::Int, m₂::Int, name::AbstractString = "QP")     =
   MPSDescription(Float64, Matrix, n, m₁, m₂, name)
-MPSDescription{T<:AbstractFloat}(t::Type{T}, name::AbstractString = "QP") =
+MPSDescription(t::Type{T}, name::AbstractString = "QP") where {T<:AbstractFloat} =
   MPSDescription(t, 0, 0, 0, name)
 MPSDescription(name::AbstractString = "QP")                               =
   MPSDescription(Float64, name)
 
 SparseMPSDescription(n::Int, m₁::Int, m₂::Int, name::AbstractString = "QP")     =
   MPSDescription(Float64, SparseMatrixCSC, n, m₁, m₂, name)
-SparseMPSDescription(t::Type{T}, name::AbstractString = "QP") =
-  SparseMPSDescription(t, 0, 0, 0, name) where {T<:AbstractFloat}
+SparseMPSDescription(t::Type{T}, name::AbstractString = "QP") where {T<:AbstractFloat} =
+  SparseMPSDescription(t, 0, 0, 0, name)
 SparseMPSDescription(name::AbstractString = "QP")                               =
   SparseMPSDescription(Float64, name)
 
@@ -48,11 +48,11 @@ function MPSDescription(::Type{T}, Q::AbstractMatrix, q₁::AbstractVector, q₂
   lb::AbstractVector, ub::AbstractVector, vars::AbstractVector{S},
   name::AbstractString) where {T<:AbstractFloat,S<:Union{Symbol,Char,AbstractString}}
 
-  Q, C, A = promote(Q, C, A, Matrix{T})
+  Q, C, A = convert.(Matrix{T}, (Q, C, A))
 
   _mpscheck(Q, q₁, q₂, c₁, C, c₂, A, b, lb, ub, vars)
 
-  MPSDescription{T,Matrix{T}}(Q, q₁, q₂, c₁, C, c₂, A, b, lb, ub, vars, name)
+  MPSDescription{T,Matrix{T}}(Q, q₁, q₂, c₁, C, c₂, A, b, lb, ub, Symbol.(vars), name)
 end
 
 function MPSDescription(::Type{T}, Q::AbstractSparseMatrix, q₁::AbstractVector, q₂::Real,
@@ -60,11 +60,11 @@ function MPSDescription(::Type{T}, Q::AbstractSparseMatrix, q₁::AbstractVector
   lb::AbstractVector, ub::AbstractVector, vars::AbstractVector{S},
   name::AbstractString) where {T<:AbstractFloat,S<:Union{Symbol,Char,AbstractString}}
 
-  Q, C, A = promote(Q, C, A, SparseMatrixCSC{T,Int})
+  Q, C, A = convert.(SparseMatrixCSC{T,Int}, (Q, C, A))
 
   _mpscheck(Q, q₁, q₂, c₁, C, c₂, A, b, lb, ub, vars)
 
-  MPSDescription{T,SparseMatrixCSC{T,Int}}(Q, q₁, q₂, c₁, C, c₂, A, b, lb, ub, vars, name)
+  MPSDescription{T,SparseMatrixCSC{T,Int}}(Q, q₁, q₂, c₁, C, c₂, A, b, lb, ub, Symbol.(vars), name)
 end
 
 function _mpscheck(Q::AbstractMatrix, q₁::AbstractVector, q₂::Real, c₁::AbstractVector,
@@ -77,29 +77,21 @@ function _mpscheck(Q::AbstractMatrix, q₁::AbstractVector, q₂::Real, c₁::Ab
   n₅      = length(vars)
 
   if n₁ ≠ n₂
-    warn("MPSDescription: `Q` matrix must be symmetric")
-    throw(DomainError())
+    throw(DomainError(Q ,"MPSDescription: `Q` matrix must be symmetric"))
   elseif n₁ ≠ length(q₁)
-    warn("MPSDescription: `q₁` must have $(n₁) elements")
-    throw(DomainError())
+    throw(DomainError(q₁ ,"MPSDescription: `q₁` must have $(n₁) elements"))
   elseif n₁ ≠ n₃
-    warn("MPSDescription: `C` must have $(n₁) columns")
-    throw(DomainError())
+    throw(DomainError(C ,"MPSDescription: `C` must have $(n₁) columns"))
   elseif m₁ ≠ length(c₁) || m₁ ≠ length(c₂)
-    warn("MPSDescription: Both `c₁` and `c₂` must have $(m₁) elements")
-    throw(DomainError())
+    throw(DomainError((c₁, c₂) ,"MPSDescription: Both `c₁` and `c₂` must have $(m₁) elements"))
   elseif n₁ ≠ n₄
-    warn("MPSDescription: `A` must have $(n₁) columns")
-    throw(DomainError())
+    throw(DomainError(A ,"MPSDescription: `A` must have $(n₁) columns"))
   elseif m₂ ≠ length(b)
-    warn("MPSDescription: `b` must have $(m₂) elements")
-    throw(DomainError())
+    throw(DomainError(b ,"MPSDescription: `b` must have $(m₂) elements"))
   elseif n₁ ≠ length(lb) || n₁ ≠ length(ub)
-    warn("MPSDescription: Both `lb` and `ub` must have $(n₁) elements")
-    throw(DomainError())
+    throw(DomainError((lb, ub) ,"MPSDescription: Both `lb` and `ub` must have $(n₁) elements"))
   elseif n₁ ≠ length(vars)
-    warn("MPSDescription: `vars` must have $(n₁) elements")
-    throw(DomainError())
+    throw(DomainError(vars ,"MPSDescription: `vars` must have $(n₁) elements"))
   end
 end
 
@@ -199,7 +191,8 @@ function _full(stream, ::MIME"text/plain", qp::MPSDescription)
 end
 
 _header(qp::MPSDescription) = string("QP instance: ", name(qp), ".")
-_header{T<:AbstractFloat,M<:AbstractSparseMatrix}(qp::MPSDescription{T,M}) = string("Sparse QP instance: ", name(qp), ".")
+_header(qp::MPSDescription{T,M}) where {T<:AbstractFloat,M<:AbstractSparseMatrix} =
+  string("Sparse QP instance: ", name(qp), ".")
 
 show(stream::IO, qp::MPSDescription)                          =
   show(stream, MIME("text/plain"), qp)
