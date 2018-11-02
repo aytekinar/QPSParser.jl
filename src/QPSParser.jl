@@ -2,6 +2,8 @@ module QPSParser
 
 import Base: show
 
+using SparseArrays
+
 export  canonical,
         objective,
         inequalities,

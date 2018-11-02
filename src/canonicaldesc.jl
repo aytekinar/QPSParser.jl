@@ -11,7 +11,7 @@ struct CanonicalDescription{T<:AbstractFloat,M<:AbstractMatrix}
   vars::Vector{Symbol}
   name::String
 
-  function (::Type{CanonicalDescription}){T<:AbstractFloat,M<:AbstractMatrix}(qp::MPSDescription{T,M})
+  function (::Type{CanonicalDescription})(qp::MPSDescription{T,M}) where {T<:AbstractFloat,M<:AbstractMatrix}
     c1ind   = isfinite.(qp.c₁)
     c2ind   = isfinite.(qp.c₂)
     m₁, m₂  = sum(c1ind), sum(c2ind)
@@ -29,7 +29,7 @@ struct CanonicalDescription{T<:AbstractFloat,M<:AbstractMatrix}
     new{T,M}(qp.Q, qp.q₁, qp.q₂, qp.A, qp.b, C̃, c̃, qp.lb, qp.ub, qp.vars, qp.name)
   end
 
-  function (::Type{CanonicalDescription}){T<:AbstractFloat,M<:AbstractSparseMatrix}(qp::MPSDescription{T,M})
+  function (::Type{CanonicalDescription})(qp::MPSDescription{T,M}) where {T<:AbstractFloat,M<:AbstractSparseMatrix}
     c1ind   = isfinite.(qp.c₁)
     c2ind   = isfinite.(qp.c₂)
     m₁, m₂  = sum(c1ind), sum(c2ind)
@@ -88,7 +88,7 @@ argument in `parseqps`.
 See also: `name`, `variables`, `objective`, `equalities`, `inequalities`,
   `bounds` and `parseqps`.
 """
-canonical{T<:AbstractFloat}(qp::MPSDescription{T})            =
+canonical(qp::MPSDescription{T}) where {T<:AbstractFloat}     =
   CanonicalDescription(qp)
 
 name(qp::CanonicalDescription)          = qp.name
@@ -113,7 +113,7 @@ function _full(stream, ::MIME"text/plain", qp::CanonicalDescription)
 end
 
 _header(qp::CanonicalDescription) = string("QP instance: ", name(qp), ".")
-_header{T<:AbstractFloat,M<:AbstractSparseMatrix}(qp::CanonicalDescription{T,M}) = string("Sparse QP instance: ", name(qp), ".")
+_header(qp::CanonicalDescription{T,M}) where {T<:AbstractFloat,M<:AbstractSparseMatrix} = string("Sparse QP instance: ", name(qp), ".")
 
 show(stream::IO, qp::CanonicalDescription)                          =
   show(stream, MIME("text/plain"), qp)

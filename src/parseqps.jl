@@ -218,7 +218,7 @@ end
 
 parse_sparseqps(filename::AbstractString) = parse_sparseqps(Float64, filename)
 
-function _parseqps{T<:AbstractFloat}(::Type{T}, filename::AbstractString)
+function _parseqps(::Type{T}, filename::AbstractString) where {T<:AbstractFloat}
   # Initialize auxiliary variables
   qpname                        = "QP"
   mode                          = :NAME
@@ -249,8 +249,8 @@ function _parseqps{T<:AbstractFloat}(::Type{T}, filename::AbstractString)
       if mode == :ROWS
         rowsym = Symbol(words[2])
         rows[rowsym] =
-          words[1] == "N" ? (objgiven = true; objsymbol = rowsym; Pair(0, :obj)):
-        words[1] == "L" ? (ineqrowidx += 1; Pair(ineqrowidx, :leq))           :
+          words[1] == "N" ? (objgiven = true; objsymbol = rowsym; Pair(0, :obj)) :
+        words[1] == "L" ? (ineqrowidx += 1; Pair(ineqrowidx, :leq))             :
           words[1] == "G" ? (ineqrowidx += 1; Pair(ineqrowidx, :geq))           :
           (eqrowidx   += 1; Pair(eqrowidx, :eq))
       elseif mode == :COLUMNS
@@ -293,7 +293,7 @@ function _parseqps{T<:AbstractFloat}(::Type{T}, filename::AbstractString)
       end
     end
 
-    varvec    = Vector{Symbol}(length(vars))
+    varvec    = Vector{Symbol}(undef,length(vars))
     for (varname, varidx) in vars
       varvec[varidx] = varname
     end
