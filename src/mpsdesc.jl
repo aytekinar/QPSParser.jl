@@ -1,4 +1,4 @@
-immutable MPSDescription{T<:AbstractFloat,M<:AbstractMatrix}
+struct MPSDescription{T<:AbstractFloat,M<:AbstractMatrix}
   Q::M
   q₁::Vector{T}
   q₂::T
@@ -13,16 +13,16 @@ immutable MPSDescription{T<:AbstractFloat,M<:AbstractMatrix}
   name::String
 end
 
-function (::Type{MPSDescription}){T<:AbstractFloat}(::Type{T}, ::Type{Matrix}, n::Int, m₁::Int,
-  m₂::Int, name::AbstractString = "QP")
+function (::Type{MPSDescription})(::Type{T}, ::Type{Matrix}, n::Int, m₁::Int,
+  m₂::Int, name::AbstractString = "QP") where {T<:AbstractFloat}}
   MPSDescription{T,Matrix{T}}(zeros(T, n, n), zeros(T, n), zero(T), fill(convert(T, -Inf), m₁),
     zeros(T, m₁, n), fill(convert(T, Inf), m₁), zeros(T, m₂, n), zeros(T, m₂),
     zeros(T, n), fill(convert(T, Inf), n), Symbol[Symbol(:x_,k) for k in 1:n],
     name)
 end
 
-function (::Type{MPSDescription}){T<:AbstractFloat}(::Type{T}, ::Type{SparseMatrixCSC}, n::Int, m₁::Int,
-  m₂::Int, name::AbstractString = "QP")
+function (::Type{MPSDescription})(::Type{T}, ::Type{SparseMatrixCSC}, n::Int, m₁::Int,
+  m₂::Int, name::AbstractString = "QP") where {T<:AbstractFloat}
   MPSDescription{T,SparseMatrixCSC{T,Int}}(spzeros(T, n, n), zeros(T, n), zero(T), fill(convert(T, -Inf), m₁),
     spzeros(T, m₁, n), fill(convert(T, Inf), m₁), spzeros(T, m₂, n), zeros(T, m₂),
     zeros(T, n), fill(convert(T, Inf), n), Symbol[Symbol(:x_,k) for k in 1:n],
@@ -38,16 +38,15 @@ MPSDescription(name::AbstractString = "QP")                               =
 
 SparseMPSDescription(n::Int, m₁::Int, m₂::Int, name::AbstractString = "QP")     =
   MPSDescription(Float64, SparseMatrixCSC, n, m₁, m₂, name)
-SparseMPSDescription{T<:AbstractFloat}(t::Type{T}, name::AbstractString = "QP") =
-  SparseMPSDescription(t, 0, 0, 0, name)
+SparseMPSDescription(t::Type{T}, name::AbstractString = "QP") =
+  SparseMPSDescription(t, 0, 0, 0, name) where {T<:AbstractFloat}
 SparseMPSDescription(name::AbstractString = "QP")                               =
   SparseMPSDescription(Float64, name)
 
-function MPSDescription{T<:AbstractFloat,S<:Union{Symbol,Char,AbstractString}}(
-  ::Type{T}, Q::AbstractMatrix, q₁::AbstractVector, q₂::Real, c₁::AbstractVector,
-  C::AbstractMatrix, c₂::AbstractVector, A::AbstractMatrix, b::AbstractVector,
+function MPSDescription(::Type{T}, Q::AbstractMatrix, q₁::AbstractVector, q₂::Real,
+  c₁::AbstractVector, C::AbstractMatrix, c₂::AbstractVector, A::AbstractMatrix, b::AbstractVector,
   lb::AbstractVector, ub::AbstractVector, vars::AbstractVector{S},
-  name::AbstractString)
+  name::AbstractString) where {T<:AbstractFloat,S<:Union{Symbol,Char,AbstractString}}
 
   Q, C, A = promote(Q, C, A, Matrix{T})
 
@@ -56,11 +55,10 @@ function MPSDescription{T<:AbstractFloat,S<:Union{Symbol,Char,AbstractString}}(
   MPSDescription{T,Matrix{T}}(Q, q₁, q₂, c₁, C, c₂, A, b, lb, ub, vars, name)
 end
 
-function MPSDescription{T<:AbstractFloat,S<:Union{Symbol,Char,AbstractString}}(
-  ::Type{T}, Q::AbstractSparseMatrix, q₁::AbstractVector, q₂::Real, c₁::AbstractVector,
-  C::AbstractSparseMatrix, c₂::AbstractVector, A::AbstractSparseMatrix, b::AbstractVector,
+function MPSDescription(::Type{T}, Q::AbstractSparseMatrix, q₁::AbstractVector, q₂::Real,
+  c₁::AbstractVector, C::AbstractSparseMatrix, c₂::AbstractVector, A::AbstractSparseMatrix, b::AbstractVector,
   lb::AbstractVector, ub::AbstractVector, vars::AbstractVector{S},
-  name::AbstractString)
+  name::AbstractString) where {T<:AbstractFloat,S<:Union{Symbol,Char,AbstractString}}
 
   Q, C, A = promote(Q, C, A, SparseMatrixCSC{T,Int})
 
@@ -69,10 +67,9 @@ function MPSDescription{T<:AbstractFloat,S<:Union{Symbol,Char,AbstractString}}(
   MPSDescription{T,SparseMatrixCSC{T,Int}}(Q, q₁, q₂, c₁, C, c₂, A, b, lb, ub, vars, name)
 end
 
-function _mpscheck{S<:Union{Symbol,Char,AbstractString}}(
-  Q::AbstractMatrix, q₁::AbstractVector, q₂::Real, c₁::AbstractVector,
+function _mpscheck(Q::AbstractMatrix, q₁::AbstractVector, q₂::Real, c₁::AbstractVector,
   C::AbstractMatrix, c₂::AbstractVector, A::AbstractMatrix, b::AbstractVector,
-  lb::AbstractVector, ub::AbstractVector, vars::AbstractVector{S})
+  lb::AbstractVector, ub::AbstractVector, vars::AbstractVector{S}) where {S<:Union{Symbol,Char,AbstractString}}
 
   n₁, n₂  = size(Q)
   m₁, n₃  = size(C)
@@ -106,10 +103,10 @@ function _mpscheck{S<:Union{Symbol,Char,AbstractString}}(
   end
 end
 
-MPSDescription{S<:Union{Symbol,Char,AbstractString}}(Q::AbstractMatrix,
-  q₁::AbstractVector, q₂::Real, c₁::AbstractVector, C::AbstractMatrix,
-  c₂::AbstractVector, A::AbstractMatrix, b::AbstractVector, lb::AbstractVector,
-  ub::AbstractVector, vars::AbstractVector{S}, name::AbstractString) =
+MPSDescription(Q::AbstractMatrix, q₁::AbstractVector, q₂::Real,
+  c₁::AbstractVector, C::AbstractMatrix, c₂::AbstractVector,
+  A::AbstractMatrix, b::AbstractVector, lb::AbstractVector,
+  ub::AbstractVector, vars::AbstractVector{S}, name::AbstractString) where {S<:Union{Symbol,Char,AbstractString}} =
   MPSDescription(Float64, Q, q₁, q₂, c₁, C, c₂, A, b, lb, ub, vars, name)
 
 """

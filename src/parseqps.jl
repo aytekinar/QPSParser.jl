@@ -19,7 +19,7 @@ where all the matrices and vectors are of type `T`.
 See also: `name`, `variables`, `objective`, `equalities`, `inequalities`,
   `bounds` and `canonical`.
 """
-function parseqps{T<:AbstractFloat}(::Type{T}, filename::AbstractString)
+function parseqps(::Type{T}, filename::AbstractString) where {T<:AbstractFloat}
   qpname, ineqrowidx, eqrowidx, objgiven, objsymbol, vars, rows, cols, rhs, ranges, bounds, quadobj, varvec = _parseqps(T,filename)
 
   # Create the matrices
@@ -117,7 +117,7 @@ where all the matrices and vectors are of type `T`.
 See also: `name`, `variables`, `objective`, `equalities`, `inequalities`,
   `bounds` and `canonical`.
 """
-function parse_sparseqps{T<:AbstractFloat}(::Type{T}, filename::AbstractString)
+function parse_sparseqps(::Type{T}, filename::AbstractString) where {T<:AbstractFloat}
   qpname, ineqrowidx, eqrowidx, objgiven, objsymbol, vars, rows, cols, rhs, ranges, bounds, quadobj, varvec = _parseqps(T,filename)
 
   # Create the vectors

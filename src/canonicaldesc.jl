@@ -1,4 +1,4 @@
-immutable CanonicalDescription{T<:AbstractFloat,M<:AbstractMatrix}
+struct CanonicalDescription{T<:AbstractFloat,M<:AbstractMatrix}
   Q::M
   q₁::Vector{T}
   q₂::T
